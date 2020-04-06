@@ -10,7 +10,7 @@ setup(
     author = 'Eduardo Salazar',
     author_email = 'eduardosalazar89@hotmail.es',
     url = 'https://github.com/esalazarv/biggu-container.git',
-    download_url = 'https://github.com/esalazarv/biggu-container.git/tarball/0.0.1',
+    download_url = 'https://github.com/esalazarv/biggu-container/archive/0.0.1.zip',
     keywords = ['container', 'IoC', 'dependencies', 'injection', 'resolution'],
     license="MIT",
     classifiers = [
