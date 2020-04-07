@@ -1,5 +1,5 @@
 import unittest
-from container import Container
+from biggu_container import Container
 
 
 class FooBar:

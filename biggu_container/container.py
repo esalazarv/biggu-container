@@ -6,14 +6,14 @@ class Container:
         self.bindings = {}
         self.shared = {}
 
-    # Bind a resolver in container
+    # Bind a resolver in biggu_container
     def bind(self, name, resolver, shared = False):
         self.bindings[name] = {
             'resolver': resolver,
             'shared': shared,
         }
 
-    # Register an instance of class in container
+    # Register an instance of class in biggu_container
     def instance(self, name, instance):
         self.shared[name] = instance
 
@@ -61,7 +61,7 @@ class Container:
 
         return _class(**dependencies)
 
-    # Make a instance using a key name in container
+    # Make a instance using a key name in biggu_container
     def make(self, name, arguments = None):
         if name in self.shared:
             return self.shared[name]
