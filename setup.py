@@ -2,9 +2,8 @@ from distutils.core import setup
 
 setup(
     name = 'biggu-container',
-    packages = ['biggu-container'],
-    version = '0.0.1',
-    package_dir={'':'src'},
+    packages = ['container'],
+    version = 'v0.0.1',
     exclude=["test"],
     description = 'IoC for python projects',
     author = 'Eduardo Salazar',
