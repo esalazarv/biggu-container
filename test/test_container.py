@@ -1,5 +1,5 @@
 import unittest
-from src import Container
+from container import Container
 
 
 class FooBar:
