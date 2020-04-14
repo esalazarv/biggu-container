@@ -29,7 +29,6 @@ class Container:
 
     @staticmethod
     def import_class(namespace):
-        print("RESOLVE CLASS NAME", namespace)
         class_data = namespace.split(".")
         submodules_list = class_data[0:-1]
         class_name = class_data[-1]
