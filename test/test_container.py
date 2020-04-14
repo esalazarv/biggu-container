@@ -39,6 +39,19 @@ class ContainerTest(unittest.TestCase):
         self.assertEqual(container.ensure_key_string(1), '1')
         self.assertEqual(container.ensure_key_string(2.5), '2.5')
 
+    def test_register_values(self):
+        container = Container()
+        container.instance('app.string', '/var/www/app')
+        container.instance('app.number', 5)
+        container.instance('app.boolean', False)
+        container.instance('app.dictionary', {})
+        container.instance('app.list', [])
+        self.assertEqual(container.make('app.string'), '/var/www/app')
+        self.assertEqual(container.make('app.number'), 5)
+        self.assertEqual(container.make('app.boolean'), False)
+        self.assertEqual(container.make('app.dictionary'), {})
+        self.assertEqual(container.make('app.list'), [])
+
     def test_bind_from_lambda(self):
         container = Container()
         container.bind('key', lambda cont: 'Object')
@@ -70,7 +83,6 @@ class ContainerTest(unittest.TestCase):
     def test_bind_for_class_name_with_default_arguments(self):
         container = Container()
         self.assertIsInstance(container.make('test.test_container.Defaults', {"client_id": "1"}), Defaults)
-
 
     def test_singleton_instance(self):
         container = Container()
