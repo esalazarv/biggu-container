@@ -6,6 +6,13 @@ class Container:
         self.bindings = {}
         self.shared = {}
 
+    @staticmethod
+    def ensure_key_string(key):
+        allowed = (int, str, bool, float)
+        if not isinstance(key, allowed):
+            key = key.__module__ + '.' + key.__name__
+        return str(key)
+
     # Bind a resolver in biggu_container
     def bind(self, name, resolver, shared = False):
         self.bindings[name] = {
@@ -15,13 +22,14 @@ class Container:
 
     # Register an instance of class in biggu_container
     def instance(self, name, instance):
-        self.shared[name] = instance
+        self.shared[self.ensure_key_string(name)] = instance
 
     def singleton(self, name, resolver):
-        self.bind(name, resolver, True)
+        self.bind(self.ensure_key_string(name), resolver, True)
 
     @staticmethod
     def import_class(namespace):
+        print("RESOLVE CLASS NAME", namespace)
         class_data = namespace.split(".")
         submodules_list = class_data[0:-1]
         class_name = class_data[-1]
@@ -63,6 +71,7 @@ class Container:
 
     # Make a instance using a key name in biggu_container
     def make(self, name, arguments = None):
+        name = self.ensure_key_string(name)
         if name in self.shared:
             return self.shared[name]
 
@@ -76,8 +85,11 @@ class Container:
         if callable(resolver):
             _object = resolver(self)
         else:
-            _class = Container.import_class(resolver)
-            _object = self.build(_class, arguments)
+            if type(resolver) != str:
+                _object = resolver
+            else:
+                _class = Container.import_class(resolver)
+                _object = self.build(_class, arguments)
 
         if shared :
             self.instance(name, _object)
