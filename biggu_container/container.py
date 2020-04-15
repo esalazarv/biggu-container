@@ -13,17 +13,18 @@ class Container:
             key = key.__module__ + '.' + key.__name__
         return str(key)
 
-    # Bind a resolver in biggu_container
+    # Bind a resolver in container
     def bind(self, name, resolver, shared = False):
         self.bindings[name] = {
             'resolver': resolver,
             'shared': shared,
         }
 
-    # Register an instance of class in biggu_container
+    # Register an instance of class in container
     def instance(self, name, instance):
         self.instances[self.ensure_key_string(name)] = instance
 
+    # Register an singleton instance in container
     def singleton(self, name, resolver):
         self.bind(self.ensure_key_string(name), resolver, True)
 
@@ -31,44 +32,46 @@ class Container:
     def import_class(namespace):
         class_data = namespace.split(".")
         submodules_list = class_data[0:-1]
+        submodule = '.'.join(submodules_list)
         class_name = class_data[-1]
-
-        module = __import__('.'.join(submodules_list), fromlist=[class_name])
+        module = __import__(submodule, fromlist=[class_name])
         return getattr(module, class_name)
 
     # Build instances with dependencies
     def build(self, _class, arguments = None):
-        _info = inspect.getfullargspec(_class.__init__)
-        class_arguments = _info.args[1:]
-
-        if not len(class_arguments):
+        class_info = inspect.getfullargspec(_class.__init__)
+        if not len(class_info.args[1:]):
             return _class()
 
         if arguments is None:
             arguments = {}
 
+        dependencies = self.resolve_dependencies(class_info, arguments)
+
+        return _class(**dependencies)
+
+    def resolve_dependencies(self, class_info, arguments):
         dependencies = {}
-        for key in class_arguments:
+        class_arguments = class_info.args[1:]
+        for key in class_info.args[1:]:
             if key in arguments:
                 dependencies[key] = arguments[key]
                 continue
 
-            if key in _info.annotations and  inspect.isclass(_info.annotations[key]):
-                dependencies[key] = self.build(_info.annotations[key])
+            if key in class_info.annotations and inspect.isclass(class_info.annotations[key]):
+                dependencies[key] = self.build(class_info.annotations[key])
             else:
-                if _info.defaults is None:
+                if class_info.defaults is None:
                     raise Exception('Provide the value of the parameter [%s]' % key)
 
-                last_required_index = len(class_arguments) - len(_info.defaults)
+                last_required_index = len(class_arguments) - len(class_info.defaults)
                 defaults = class_arguments[last_required_index:]
                 for index in range(len(defaults)):
                     name = defaults[index]
-                    dependencies[name] = _info.defaults[index]
+                    dependencies[name] = class_info.defaults[index]
+        return dependencies
 
-
-        return _class(**dependencies)
-
-    # Make a instance using a key name in biggu_container
+    # Make a instance using a key name in container
     def make(self, name, arguments = None):
         name = self.ensure_key_string(name)
         if name in self.instances:
@@ -82,22 +85,22 @@ class Container:
             shared = False
 
         if callable(resolver):
-            _object = resolver(self)
+            instance = resolver(self)
         else:
             if type(resolver) != str:
-                _object = resolver
+                instance = resolver
             else:
-                _class = Container.import_class(resolver)
-                _object = self.build(_class, arguments)
+                _class = self.import_class(resolver)
+                instance = self.build(_class, arguments)
 
-        # If was bound as singleton
+        # If was bound as singleton then register instance
         if shared :
-            self.instance(name, _object)
+            self.instance(name, instance)
 
-        return _object
+        return instance
 
-    def bound(self, abstract):
-        return abstract in self.bindings or abstract in self.instances
+    def bound(self, name):
+        return name in self.bindings or name in self.instances
 
     def flush(self):
         self.bindings = {}
