@@ -4,7 +4,7 @@ class Container:
 
     def __init__(self):
         self.bindings = {}
-        self.shared = {}
+        self.instances = {}
 
     @staticmethod
     def ensure_key_string(key):
@@ -22,7 +22,7 @@ class Container:
 
     # Register an instance of class in biggu_container
     def instance(self, name, instance):
-        self.shared[self.ensure_key_string(name)] = instance
+        self.instances[self.ensure_key_string(name)] = instance
 
     def singleton(self, name, resolver):
         self.bind(self.ensure_key_string(name), resolver, True)
@@ -71,8 +71,8 @@ class Container:
     # Make a instance using a key name in biggu_container
     def make(self, name, arguments = None):
         name = self.ensure_key_string(name)
-        if name in self.shared:
-            return self.shared[name]
+        if name in self.instances:
+            return self.instances[name]
 
         if name in self.bindings:
             resolver = self.bindings[name]['resolver']
@@ -90,7 +90,15 @@ class Container:
                 _class = Container.import_class(resolver)
                 _object = self.build(_class, arguments)
 
+        # If was bound as singleton
         if shared :
             self.instance(name, _object)
 
         return _object
+
+    def bound(self, abstract):
+        return abstract in self.bindings or abstract in self.instances
+
+    def flush(self):
+        self.bindings = {}
+        self.instances = {}

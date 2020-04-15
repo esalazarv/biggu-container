@@ -105,6 +105,18 @@ class ContainerTest(unittest.TestCase):
         self.assertEqual(container.make('test.test_container.Foo'), container.make('test.test_container.Foo'))
         self.assertEqual(container.make('test.test_container.FooBar'), container.make('test.test_container.FooBar'))
 
+    def test_if_a_key_was_bound(self):
+        container = Container()
+        container.singleton(Foo, Foo())
+        self.assertTrue(container.bound('test.test_container.Foo'))
+
+    def test_flush_data(self):
+        container = Container()
+        container.instance(Foo, Foo())
+        container.singleton(FooBar, FooBar())
+        container.flush()
+        self.assertFalse(container.bound('test.test_container.Foo'))
+        self.assertFalse(container.bound('test.test_container.Foobar'))
 
 if __name__ == '__main__':
     unittest.main()
